@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation(libs.junit)
 
