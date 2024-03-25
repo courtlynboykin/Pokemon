@@ -10,8 +10,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.pokemon.data.PokemonRepository
+import com.example.pokemon.ui.screens.DetailScreen
 import com.example.pokemon.ui.screens.HomePane
-import com.example.pokemon.ui.screens.PokemonApp
+import com.example.pokemon.ui.screens.PhotosGridScreen
+import com.example.pokemon.ui.screens.PokemonCard
+import com.example.pokemon.ui.screens.PokemonViewModel
 import com.example.pokemon.ui.theme.PokemonTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,7 +28,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PokemonApp()
+                   HomePane()
                 }
             }
         }

@@ -1,108 +1,114 @@
 package com.example.pokemon.ui.screens
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.pokemon.model.Pokemon
 import com.example.pokemon.data.PokemonRepository
-import com.example.pokemon.model.PokemonDetails
+import com.example.pokemon.model.Pokemon
 import com.example.pokemon.ui.PokemonApplication
+import com.example.pokemon.ui.PokemonDetailsUiState
+import com.example.pokemon.ui.PokemonUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import java.io.IOException
 
-sealed interface PokemonUiState {
-    data class Success(val pokemon: List<Pokemon>) : PokemonUiState
-    object Error : PokemonUiState
-    object Loading : PokemonUiState
-}
+class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewModel() {
 
-class PokemonViewModel(val pokemonRepository: PokemonRepository) : ViewModel() {
-
-    var pokemonUiState: PokemonUiState by mutableStateOf<PokemonUiState>(PokemonUiState.Loading)
-            private set
-    var pokemonList: List<Pokemon> by mutableStateOf(emptyList())
+    var pokemonUiState: PokemonUiState by mutableStateOf(PokemonUiState.Loading)
         private set
 
-    var selectedPokemon: Pokemon? by mutableStateOf(null)
-        private set
-
-    var pokemonDetails: PokemonDetails? by mutableStateOf(null)
-        private set
+    var selectedPokemonId by mutableIntStateOf(0)
+   var pokemonDetailsUiState: PokemonDetailsUiState by mutableStateOf(PokemonDetailsUiState.Loading)
+    private set
 
     init {
-        getPokemon()
+            getPokemon()
+            fetchPokemonData()
+
     }
 
-    fun getPokemon(){
+
+
+    fun getPokemon(limit: Int = 151){
         viewModelScope.launch {
             pokemonUiState = PokemonUiState.Loading
-            pokemonUiState = try {
-                PokemonUiState.Success(
-                    pokemonRepository.getPokemon()
-                )
-            } catch (e: IOException) {
-                PokemonUiState.Error
-            } catch (e: HttpException) {
-                PokemonUiState.Error
-            }
-        }
-
-
-
-   fun getPokemonDetails(pokemonUrl: String) {
-        viewModelScope.launch {
             try {
-                // Extract Pokémon ID from URL
-                val pokemonId = pokemonUrl.substringAfterLast("/").toInt()
-                // Fetch Pokémon details based on ID
-                pokemonDetails = pokemonRepository.getPokemonDetails(pokemonId)
-            } catch (e: IOException) {
-                // Handle IO exception
-            } catch (e: HttpException) {
-                // Handle HTTP exception
+                val pokemon = pokemonRepository.getPokemon(limit)
+                if (pokemon == null){
+                    PokemonUiState.Error
+                } else {
+                    PokemonUiState.Success(pokemon)
+                }
+            } catch (e: IOException){
+                PokemonUiState.Error
+            } catch (e: HttpException){
+                PokemonUiState.Error
             }
+
         }
     }
 
-        fun setSelectedPokemon(pokemon: Pokemon) {
-            selectedPokemon = pokemon
-            getPokemonDetails(pokemon.url)
-        }
-}
-
-//    var pokemonUiState: PokemonUiState by mutableStateOf<PokemonUiState>(PokemonUiState.Loading)
-//        private set
-//
-//    var pokemonDetails: PokemonDetails? by mutableStateOf(null)
-//        private set
-//
-//    init {
-//        getPokemon()
-//        val pokemonId = pokemon.url.substringAfterLast("/").toInt()
-//        getPokemonDetails(pokemonId)
-//    }
-//
-//
-//
-//    }
-//
 //    fun getPokemonDetails(id: Int) {
 //        viewModelScope.launch {
-//            try {
-//                pokemonDetails = pokemonRepository.getPokemonDetails(id)
+//            pokemonDetailsUiState = PokemonDetailsUiState.Loading
+//            pokemonDetailsUiState = try {
+//                val pokemonDetails = pokemonRepository.getPokemonDetails(id)
+//                if (pokemonDetails == null) {
+//                    PokemonDetailsUiState.Error
+//                } else {
+//                    PokemonDetailsUiState.Success(pokemonDetails)
+//                }
 //            } catch (e: IOException) {
-//                PokemonUiState.Error
+//                PokemonDetailsUiState.Error
 //            } catch (e: HttpException) {
-//                PokemonUiState.Error
+//                PokemonDetailsUiState.Error
 //            }
+//
 //        }
 //    }
+
+      fun fetchPokemonData() {
+            viewModelScope.launch {
+                val pokemonList = pokemonRepository.getPokemon(151)
+                if (pokemonList == null) {
+                    pokemonUiState = PokemonUiState.Error
+                    return@launch
+                }
+
+                val pokemonUrls = pokemonList.map { it.url }
+                val extractedIds = mutableListOf<Int>()
+                for (url in pokemonUrls) {
+                    val extractedId = extractPokemonIdFromUrl(url)
+                    extractedIds.add(extractedId)
+                }
+
+                // Launch separate coroutines to fetch details for each ID
+                extractedIds.forEach { id ->
+                    viewModelScope.launch {
+                        val pokemonDetails = pokemonRepository.getPokemonDetails(id)
+                        // Update UI or store details (implementation based on your needs)
+                    }
+                }
+            }
+        }
+        private fun extractPokemonIdFromUrl(url: String): Int {
+            val parts = url.split("/")
+            return parts.getOrNull(parts.size - 2)?.toIntOrNull() ?: 0
+
+    }
+
+//
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

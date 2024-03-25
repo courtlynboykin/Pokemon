@@ -5,6 +5,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
+import com.example.pokemon.data.DefaultPokemonRepository
 
 interface PokemonAppContainer {
     val pokemonRepository: PokemonRepository
@@ -17,11 +18,15 @@ interface PokemonAppContainer {
 class DefaultPokemonAppContainer : PokemonAppContainer {
     private val baseUrl = "https://pokeapi.co/api/v2/"
 
+    private val json = Json {
+        ignoreUnknownKeys = true  // Set ignoreUnknownKeys to true
+    }
+
     /**
      * Use the Retrofit builder to build a retrofit object using a kotlinx.serialization converter
      */
     private val retrofit: Retrofit = Retrofit.Builder()
-        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .baseUrl(baseUrl)
         .build()
 

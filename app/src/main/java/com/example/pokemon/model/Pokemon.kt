@@ -4,18 +4,23 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class QueryResponse(
+    val count: Int,
+    val results: List<Pokemon>
+)
+
+@Serializable
 data class Pokemon(
     val name: String,
     val url: String
 )
 
+
 @Serializable
 data class PokemonDetails(
-    val sprite: Sprite,
-//    val move: Moves,
-    val weight: Int
+    @SerialName("sprites") val sprite: PokemonImage
 )
 @Serializable
-data class Sprite(
-    @SerialName(value = "front_default") val frontDefault: String?
+data class PokemonImage(
+    @SerialName("front_default") val image: String
 )

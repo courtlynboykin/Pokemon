@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation (libs.androidx.runtime.livedata)
 
     testImplementation(libs.junit)
 
