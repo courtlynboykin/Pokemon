@@ -15,7 +15,6 @@ data class Pokemon(
     val url: String
 )
 
-
 @Serializable
 data class PokemonDetails(
     @SerialName("sprites") val sprite: PokemonImage

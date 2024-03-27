@@ -14,7 +14,7 @@ import com.example.pokemon.data.PokemonRepository
 import com.example.pokemon.ui.screens.DetailScreen
 import com.example.pokemon.ui.screens.HomePane
 import com.example.pokemon.ui.screens.PhotosGridScreen
-import com.example.pokemon.ui.screens.PokemonCard
+//import com.example.pokemon.ui.screens.PokemonCard
 import com.example.pokemon.ui.screens.PokemonViewModel
 import com.example.pokemon.ui.theme.PokemonTheme
 

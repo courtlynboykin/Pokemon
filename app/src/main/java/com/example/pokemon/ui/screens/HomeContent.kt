@@ -1,11 +1,7 @@
 package com.example.pokemon.ui.screens
 
-import android.provider.ContactsContract.Contacts.Photo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,7 +9,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -87,7 +87,7 @@ import com.example.pokemon.ui.PokemonUiState
 fun HomePane(){
     val pokemonViewModel: PokemonViewModel =
         viewModel(factory = PokemonViewModel.Factory)
-    DetailScreen(uiState = pokemonViewModel.pokemonUiState, detailUiState = pokemonViewModel.pokemonDetailsUiState) {
+    DetailScreen(uiState = pokemonViewModel.pokemonUiState, imageUiState = pokemonViewModel.pokemonImageListUiState, /*detailUiState = pokemonViewModel.pokemonDetailsUiState*/) {
         
     }
 }
@@ -101,72 +101,97 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
     Text(text = "error")
 }
 
+
 @Composable
 fun DetailScreen(
     modifier: Modifier = Modifier,
     uiState: PokemonUiState,
-    detailUiState: PokemonDetailsUiState,
+    imageUiState: List<MutableState<String>>,
+//    detailUiState: PokemonDetailsUiState,
     retryAction: () -> Unit,
 ) {
     when (uiState) {
         is PokemonUiState.Loading -> {
             LoadingScreen()
         }
+
         is PokemonUiState.Error -> {
             ErrorScreen(
                 retryAction = retryAction
             )
         }
+
         is PokemonUiState.Success -> {
             // Check if both uiState and detailUiState are ready
-            if (detailUiState is PokemonDetailsUiState.Success) {
+//            if (detailUiState is PokemonDetailsUiState.Success) {
                 // Render the screen with both UI states
                 PhotosGridScreen(
                     pokemonList = uiState.pokemon,
-                    pokemonDetails = detailUiState.pokemonDetails,
+                    uiState = imageUiState
+//                    pokemonDetails = detailUiState.pokemonDetails
                 )
-            } else {
-                // If detailUiState is not yet ready, show a loading placeholder
-                LoadingScreen()
+//            } else {
+//                // If detailUiState is not yet ready, show a loading placeholder
+//                LoadingScreen()
+//            }
+        }
+    }
+}
+
+
+
+
+    @Composable
+    fun PhotosGridScreen(
+        pokemonList: List<Pokemon>,
+        uiState: List<MutableState<String>>,
+//        pokemonDetails: PokemonDetails,
+        modifier: Modifier = Modifier,
+        contentPadding: PaddingValues = PaddingValues(0.dp),
+    ) {
+        var index by remember { mutableIntStateOf(0) }
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            modifier = modifier.padding(horizontal = 4.dp),
+            contentPadding = contentPadding,
+        ) {
+            items(items = pokemonList) { pokemon ->
+                 if (index < 151) {
+                val imageUrl = uiState[index].value
+                Column {
+
+                    Text(text = pokemon.name)
+                    AsyncImage(
+                        model = ImageRequest.Builder(context = LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null
+                    )
+                }
+                index++
+//                PokemonCard(
+//                    pokemon = pokemon,
+//                pokemonDetails = pokemonDetails,
+//                    modifier = modifier
+//                        .padding(4.dp)
+//                        .fillMaxWidth()
+//                        .aspectRatio(1.5f)
+//                )
             }
         }
     }
-}
 
 
-@Composable
-fun PhotosGridScreen(
-    pokemonList: List<Pokemon>,
-    pokemonDetails: PokemonDetails,
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = modifier.padding(horizontal = 4.dp),
-        contentPadding = contentPadding,
+    @Composable
+    fun PokemonCard(
+        pokemon: Pokemon,
+        pokemonDetails: PokemonDetails,
+        modifier: Modifier = Modifier
     ) {
-        items(items = pokemonList) { pokemon ->
-            PokemonCard(
-                pokemon = pokemon,
-                pokemonDetails = pokemonDetails,
-                modifier = modifier
-                    .padding(4.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(1.5f)
-            )
-        }
-    }
-}
-@Composable
-fun PokemonCard(
-    pokemon: Pokemon,
-    pokemonDetails: PokemonDetails,
-    modifier: Modifier = Modifier
-) {
-    Card(modifier = Modifier) {
-        Column {
-            Text(pokemon.name)
+        Card(modifier = Modifier) {
+            Column {
+                Text(pokemon.name)
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
                     .data(pokemonDetails.sprite.image)
@@ -174,9 +199,10 @@ fun PokemonCard(
                     .build(),
                 contentDescription = null
             )
+            }
         }
-    }
-}
+    }          }
+
 
 //@Preview
 //@Composable

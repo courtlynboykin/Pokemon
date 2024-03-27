@@ -15,7 +15,7 @@ class DefaultPokemonRepository(private val pokemonApiService: PokemonApiService)
     // Retrieves list of pokemon from the data source
     override suspend fun getPokemon(limit: Int): List<Pokemon>? {
         return try {
-            val res = pokemonApiService.getPokemonResults(limit)
+            val res = pokemonApiService.getPokemonResults(151)
             if (res.isSuccessful) {
                 res.body()?.results ?: emptyList()
             } else {
