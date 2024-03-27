@@ -2,6 +2,8 @@ package com.example.pokemon.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -9,7 +11,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -21,8 +23,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokemon.model.Pokemon
-import com.example.pokemon.model.PokemonDetails
-import com.example.pokemon.ui.PokemonDetailsUiState
 import com.example.pokemon.ui.PokemonUiState
 
 //@Composable
@@ -87,10 +87,15 @@ import com.example.pokemon.ui.PokemonUiState
 fun HomePane(){
     val pokemonViewModel: PokemonViewModel =
         viewModel(factory = PokemonViewModel.Factory)
-    DetailScreen(uiState = pokemonViewModel.pokemonUiState, imageUiState = pokemonViewModel.pokemonImageListUiState, /*detailUiState = pokemonViewModel.pokemonDetailsUiState*/) {
+
+    val pokemonImageListUiState by pokemonViewModel.pokemonImageUrls.collectAsState()
+
+    DetailScreen(uiState = pokemonViewModel.pokemonUiState, imageUiState = pokemonImageListUiState, /*detailUiState = pokemonViewModel.pokemonDetailsUiState*/) {
         
     }
 }
+
+
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
    Text(text = "loading")
@@ -106,7 +111,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 fun DetailScreen(
     modifier: Modifier = Modifier,
     uiState: PokemonUiState,
-    imageUiState: List<MutableState<String>>,
+    imageUiState: List<String>,
 //    detailUiState: PokemonDetailsUiState,
     retryAction: () -> Unit,
 ) {
@@ -127,8 +132,8 @@ fun DetailScreen(
                 // Render the screen with both UI states
                 PhotosGridScreen(
                     pokemonList = uiState.pokemon,
-                    uiState = imageUiState
-//                    pokemonDetails = detailUiState.pokemonDetails
+//                    uiState = imageUiState,
+                    pokemonImages = imageUiState
                 )
 //            } else {
 //                // If detailUiState is not yet ready, show a loading placeholder
@@ -144,7 +149,8 @@ fun DetailScreen(
     @Composable
     fun PhotosGridScreen(
         pokemonList: List<Pokemon>,
-        uiState: List<MutableState<String>>,
+        pokemonImages: List<String>,
+//        uiState: List<MutableState<String>>,
 //        pokemonDetails: PokemonDetails,
         modifier: Modifier = Modifier,
         contentPadding: PaddingValues = PaddingValues(0.dp),
@@ -156,37 +162,35 @@ fun DetailScreen(
             contentPadding = contentPadding,
         ) {
             items(items = pokemonList) { pokemon ->
-                 if (index < 151) {
-                val imageUrl = uiState[index].value
-                Column {
-
-                    Text(text = pokemon.name)
-                    AsyncImage(
-                        model = ImageRequest.Builder(context = LocalContext.current)
-                            .data(imageUrl)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = null
-                    )
-                }
-                index++
-//                PokemonCard(
-//                    pokemon = pokemon,
-//                pokemonDetails = pokemonDetails,
-//                    modifier = modifier
-//                        .padding(4.dp)
-//                        .fillMaxWidth()
-//                        .aspectRatio(1.5f)
-//                )
+                PokemonCard(
+                    pokemon = pokemon,
+               image = pokemonImages[index],
+                    modifier = modifier
+                        .padding(4.dp)
+                        .fillMaxWidth()
+                        .aspectRatio(1.5f)
+                )
+                     index++
             }
         }
     }
-
+//if (index < 151) {
+//                val imageUrl = pokemonImages[index]
+//        Column {
+//                    Text(text = pokemon.name)
+//                    AsyncImage(
+//                        model = ImageRequest.Builder(context = LocalContext.current)
+//                            .data(imageUrl)
+//                            .crossfade(true)
+//                            .build(),
+//                        contentDescription = null
+//                    )
+//                }
 
     @Composable
     fun PokemonCard(
         pokemon: Pokemon,
-        pokemonDetails: PokemonDetails,
+        image: String,
         modifier: Modifier = Modifier
     ) {
         Card(modifier = Modifier) {
@@ -194,14 +198,14 @@ fun DetailScreen(
                 Text(pokemon.name)
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(pokemonDetails.sprite.image)
+                    .data(image)
                     .crossfade(true)
                     .build(),
                 contentDescription = null
             )
             }
         }
-    }          }
+    }
 
 
 //@Preview

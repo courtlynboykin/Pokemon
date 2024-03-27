@@ -21,12 +21,15 @@ import com.example.pokemon.ui.PokemonImageUiState
 import com.example.pokemon.ui.PokemonUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import java.io.IOException
+
 
 class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewModel() {
 
@@ -35,17 +38,16 @@ class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewM
    var pokemonDetailsUiState: PokemonDetailsUiState by mutableStateOf(PokemonDetailsUiState.Loading)
     private set
 
-    private val _pokemonImageListUiState = MutableList(151) { mutableStateOf("") }
-    val pokemonImageListUiState: List<MutableState<String>> = _pokemonImageListUiState
+    private val _pokemonImageUiState = MutableStateFlow(PokemonImageUiState())
+    val pokemonImageUiState: StateFlow<PokemonImageUiState> = _pokemonImageUiState
+
+    private val _pokemonImageUrls = MutableStateFlow<List<String>>(emptyList()) // StateFlow of image URLs
+    val pokemonImageUrls: StateFlow<List<String>> = _pokemonImageUrls.asStateFlow() // Read-only state
+
     init {
         getPokemon()
 
-        getPokemonDetails(object : (List<String>) -> Unit {
-            override fun invoke(sprites: List<String>) {
-                // Update UI state with the received list of sprites
-                _pokemonImageListUiState.addAll(sprites.map { mutableStateOf(it) })
-            }
-        })
+        getPokemonImageUrls()
     }
 
 
@@ -69,48 +71,46 @@ class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewM
         }
     }
 
-//    fun getPokemonDetails(id: Int) {
-//        viewModelScope.launch {
-//            pokemonDetailsUiState = PokemonDetailsUiState.Loading
-//            pokemonDetailsUiState = try {
-//                val pokemonDetails = pokemonRepository.getPokemonDetails(id)
-//                if (pokemonDetails == null) {
-//                    PokemonDetailsUiState.Error
-//                } else {
-//                    PokemonDetailsUiState.Success(pokemonDetails)
-//                }
-//            } catch (e: IOException) {
-//                PokemonDetailsUiState.Error
-//            } catch (e: HttpException) {
-//                PokemonDetailsUiState.Error
-//            }
-//
-//        }
-//    }
+    fun getPokemonImage(id: Int) {
+        viewModelScope.launch {
+            pokemonDetailsUiState = PokemonDetailsUiState.Loading
+            pokemonDetailsUiState = try {
+                val pokemonDetails = pokemonRepository.getPokemonDetails(id)
+                if (pokemonDetails == null) {
+                    PokemonDetailsUiState.Error
+                } else {
+                    PokemonDetailsUiState.Success(pokemonDetails)
+                }
+            } catch (e: IOException) {
+                PokemonDetailsUiState.Error
+            } catch (e: HttpException) {
+                PokemonDetailsUiState.Error
+            }
 
-    fun getPokemonDetails(callback: (List<String>) -> Unit) {
+        }
+    }
+
+    fun getPokemonImageUrls() {
         viewModelScope.launch {
             val pokemonList = pokemonRepository.getPokemon(151)
-                ?: // Handle error
-                return@launch
-
-            val pokemonDetails = pokemonList.mapNotNull { pokemon ->
-                try {
-                    val id = extractPokemonIdFromUrl(pokemon.url) // Extract ID using your function
-                    val details = pokemonRepository.getPokemonDetails(id)
-                    details?.sprite.toString() // Assuming sprite is a String property
-                } catch (e: IOException) {
-                    // Handle or log IOException
-                    null // Skip this pokemon if details failed to load
-                } catch (e: HttpException) {
-                    // Handle or log HttpException
-                    null
+//            val pokemonDetails: MutableList<String> = mutableListOf("") /*mutableListOf()*/
+            pokemonList?.forEach{ pokemon ->
+                 val id = extractPokemonIdFromUrl(pokemon.url)
+                val details = pokemonRepository.getPokemonDetails(id)
+                if (details != null) {
+                    val updatedList = _pokemonImageUrls.value.toMutableList() // Convert current list to mutable
+                    updatedList[id - 1] = details.sprite.image // Update image URL at specific index
+                    _pokemonImageUrls.value = updatedList.toList()
                 }
+             }
+            }
             }
 
-            withContext(Dispatchers.Main) {
-                callback(pokemonDetails) // Call the callback with the list
-            }
+    fun updatePokemonImageUrls(newUrls: List<String>) {
+        _pokemonImageUiState.update { currentState ->
+            currentState.copy(
+                _pokemonImageUrls = newUrls
+            )
         }
     }
 
