@@ -11,30 +11,26 @@ interface PokemonAppContainer {
 }
 
 // Implementation for the Dependency Injection container at the application level.
-
 //  Variables are initialized lazily and the same instance is shared across the whole app.
-
 class DefaultPokemonAppContainer : PokemonAppContainer {
     private val baseUrl = "https://pokeapi.co/api/v2/"
 
-    /**
-     * Use the Retrofit builder to build a retrofit object using a kotlinx.serialization converter
-     */
+    private val json = Json {
+        ignoreUnknownKeys = true  // Set ignoreUnknownKeys to true
+    }
+
+    //Use the Retrofit builder to build a retrofit object using a kotlinx.serialization converter
     private val retrofit: Retrofit = Retrofit.Builder()
-        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .baseUrl(baseUrl)
         .build()
 
-    /**
-     * Retrofit service object for creating api calls
-     */
+    // Retrofit service object for creating api calls
     private val retrofitService: PokemonApiService by lazy {
         retrofit.create(PokemonApiService::class.java)
     }
 
-    /**
-     * DI implementation for Pokemon repository
-     */
+    // DI implementation for Pokemon repository
     override val pokemonRepository: PokemonRepository by lazy {
         DefaultPokemonRepository(retrofitService)
     }
