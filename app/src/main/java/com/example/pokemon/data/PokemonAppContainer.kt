@@ -5,16 +5,13 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
-import com.example.pokemon.data.DefaultPokemonRepository
 
 interface PokemonAppContainer {
     val pokemonRepository: PokemonRepository
 }
 
 // Implementation for the Dependency Injection container at the application level.
-
 //  Variables are initialized lazily and the same instance is shared across the whole app.
-
 class DefaultPokemonAppContainer : PokemonAppContainer {
     private val baseUrl = "https://pokeapi.co/api/v2/"
 
@@ -22,24 +19,18 @@ class DefaultPokemonAppContainer : PokemonAppContainer {
         ignoreUnknownKeys = true  // Set ignoreUnknownKeys to true
     }
 
-    /**
-     * Use the Retrofit builder to build a retrofit object using a kotlinx.serialization converter
-     */
+    //Use the Retrofit builder to build a retrofit object using a kotlinx.serialization converter
     private val retrofit: Retrofit = Retrofit.Builder()
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .baseUrl(baseUrl)
         .build()
 
-    /**
-     * Retrofit service object for creating api calls
-     */
+    // Retrofit service object for creating api calls
     private val retrofitService: PokemonApiService by lazy {
         retrofit.create(PokemonApiService::class.java)
     }
 
-    /**
-     * DI implementation for Pokemon repository
-     */
+    // DI implementation for Pokemon repository
     override val pokemonRepository: PokemonRepository by lazy {
         DefaultPokemonRepository(retrofitService)
     }

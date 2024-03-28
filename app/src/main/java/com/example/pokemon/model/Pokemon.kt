@@ -1,6 +1,5 @@
 package com.example.pokemon.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,14 +11,14 @@ data class QueryResponse(
 @Serializable
 data class Pokemon(
     val name: String,
-    val url: String
-)
-
-@Serializable
-data class PokemonDetails(
-    @SerialName("sprites") val sprite: PokemonImage
-)
-@Serializable
-data class PokemonImage(
-    @SerialName("front_default") val image: String
-)
+    val url: String,
+) {
+    // Function that returns the image URL for the Pokemon
+    fun getPokemonImageUrls(pokemon: Pokemon): String {
+        val parts = pokemon.url.split("/")
+        val pokemonId = parts.getOrNull(parts.size - 2)?.toIntOrNull() ?: 0
+        val imageUrl =
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png"
+        return imageUrl
+    }
+}
