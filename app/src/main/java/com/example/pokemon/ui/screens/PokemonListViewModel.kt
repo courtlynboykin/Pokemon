@@ -10,15 +10,15 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.pokemon.data.PokemonRepository
 import com.example.pokemon.ui.PokemonApplication
-import com.example.pokemon.ui.PokemonUiState
+import com.example.pokemon.ui.PokemonListUiState
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
 
-class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewModel() {
+class PokemonListViewModel(private val pokemonRepository: PokemonRepository) : ViewModel() {
 
-    var pokemonUiState: PokemonUiState by mutableStateOf(PokemonUiState.Loading)
+    var pokemonUiState: PokemonListUiState by mutableStateOf(PokemonListUiState.Loading)
         private set
 
     init {
@@ -27,19 +27,19 @@ class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewM
 
     fun getPokemon(limit: Int = 151) {
         viewModelScope.launch {
-            pokemonUiState = PokemonUiState.Loading
+            pokemonUiState = PokemonListUiState.Loading
             pokemonUiState = try {
                 val pokemon = pokemonRepository.getPokemon(limit)
 
                 if (pokemon == null) {
-                    PokemonUiState.Error
+                    PokemonListUiState.Error
                 } else {
-                    PokemonUiState.Success(pokemon)
+                    PokemonListUiState.Success(pokemon)
                 }
             } catch (e: IOException) {
-                PokemonUiState.Error
+                PokemonListUiState.Error
             } catch (e: HttpException) {
-                PokemonUiState.Error
+                PokemonListUiState.Error
             }
 
         }
@@ -51,7 +51,7 @@ class PokemonViewModel(private val pokemonRepository: PokemonRepository) : ViewM
                 val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
                         as PokemonApplication)
                 val pokemonRepository = application.pokemonContainer.pokemonRepository
-                PokemonViewModel(pokemonRepository = pokemonRepository)
+                PokemonListViewModel(pokemonRepository = pokemonRepository)
             }
         }
     }

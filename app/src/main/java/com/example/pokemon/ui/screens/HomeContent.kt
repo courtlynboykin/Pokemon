@@ -23,14 +23,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokemon.model.Pokemon
-import com.example.pokemon.ui.PokemonUiState
+import com.example.pokemon.ui.PokemonListUiState
 
 
 @Composable
-fun HomePane(onClick: (Pokemon) -> Unit) {
-    val pokemonViewModel: PokemonViewModel =
-        viewModel(factory = PokemonViewModel.Factory)
-    DetailScreen(uiState = pokemonViewModel.pokemonUiState, onClick = onClick) {
+fun HomePane() {
+    val pokemonViewModel: PokemonListViewModel =
+        viewModel(factory = PokemonListViewModel.Factory)
+    DetailScreen(uiState = pokemonViewModel.pokemonUiState, onClick: (Pokemon) -> Unit) {
     }
 }
 
@@ -48,22 +48,22 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun DetailScreen(
     modifier: Modifier = Modifier,
-    uiState: PokemonUiState,
+    uiState: PokemonListUiState, 
     onClick: (Pokemon) -> Unit,
     retryAction: () -> Unit,
 ) {
     when (uiState) {
-        is PokemonUiState.Loading -> {
+        is PokemonListUiState.Loading -> {
             LoadingScreen()
         }
 
-        is PokemonUiState.Error -> {
+        is PokemonListUiState.Error -> {
             ErrorScreen(
                 retryAction = retryAction
             )
         }
 
-        is PokemonUiState.Success -> {
+        is PokemonListUiState.Success -> {
             PhotosGridScreen(
                 pokemonList = uiState.pokemon,
                 onClick = onClick,
