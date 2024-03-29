@@ -9,8 +9,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.pokemon.data.PokemonRepository
+import com.example.pokemon.model.Pokemon
 import com.example.pokemon.ui.PokemonApplication
 import com.example.pokemon.ui.PokemonListUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -20,6 +22,8 @@ class PokemonListViewModel(private val pokemonRepository: PokemonRepository) : V
 
     var pokemonUiState: PokemonListUiState by mutableStateOf(PokemonListUiState.Loading)
         private set
+
+
 
     init {
         getPokemon()
@@ -43,6 +47,10 @@ class PokemonListViewModel(private val pokemonRepository: PokemonRepository) : V
             }
 
         }
+    }
+
+    fun updatePokemonList(pokemon: Pokemon) {
+//        val originalPokemonList = pokem
     }
 
     companion object {

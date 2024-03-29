@@ -20,7 +20,7 @@ class PokemonSquadViewModel : ViewModel() {
 
     fun addPokemon(pokemon: Pokemon?) {
         val updatedSquad = _uiState.value.pokemonSquad.toMutableList()
-        if (pokemon != null) {
+        if (pokemon != null && updatedSquad.size < 6) {
             updatedSquad.add(pokemon)
         }
         _uiState.value = _uiState.value.copy(pokemonSquad = updatedSquad)

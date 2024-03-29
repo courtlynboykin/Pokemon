@@ -52,21 +52,32 @@ fun HomePane(
 
     val squadUiState by viewModel.uiState.collectAsState()
     Column() {
-        squadUiState.pokemon?.let {
-            SquadList(
-                onClick = {
-                    viewModel.updatePokemonSelection(it)
-                    viewModel.removePokemon(it)
-                }
-            )
+        if (squadUiState.pokemonSquad.size >= 2) {
+            BattleButton(onClick = {
+                /*ToDo*/
+            })
         }
+        SquadList(
+            onClick = {
+                viewModel.updatePokemonSelection(it)
+                viewModel.removePokemon(it)
+            }
+        )
         DetailScreen(
             listUiState = pokemonViewModel.pokemonUiState,
+            squadUiState = squadUiState,
             onListClick = {
                 viewModel.updatePokemonSelection(it)
                 viewModel.addPokemon(it)
             }
         )
+    }
+}
+
+@Composable
+fun BattleButton(onClick: () -> Unit) {
+    Button(onClick = onClick) {
+        Text(text = "Battle")
     }
 }
 
@@ -85,6 +96,7 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
 fun DetailScreen(
     modifier: Modifier = Modifier,
     listUiState: PokemonListUiState,
+    squadUiState: PokemonSquadUiState,
     onListClick: (Pokemon) -> Unit
 ) {
     when (listUiState) {
@@ -99,6 +111,7 @@ fun DetailScreen(
         is PokemonListUiState.Success -> {
             PhotosGridScreen(
                 pokemonList = listUiState.pokemon,
+                squadUiState = squadUiState,
                 onClick = onListClick,
             )
         }
@@ -109,6 +122,7 @@ fun DetailScreen(
 fun PhotosGridScreen(
     pokemonList: List<Pokemon>,
     onClick: (Pokemon) -> Unit,
+    squadUiState: PokemonSquadUiState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -120,14 +134,17 @@ fun PhotosGridScreen(
             contentPadding = contentPadding,
         ) {
             items(items = pokemonList) { pokemon ->
-                PokemonCard(
-                    pokemon = pokemon,
-                    onClick = onClick,
-                    modifier = modifier
-                        .padding(4.dp)
-                        .fillMaxWidth()
-                        .aspectRatio(1.5f)
-                )
+                val inSquad = squadUiState.pokemonSquad.contains(pokemon)
+                if (!inSquad) {
+                    PokemonCard(
+                        pokemon = pokemon,
+                        onClick = onClick,
+                        modifier = modifier
+                            .padding(4.dp)
+                            .fillMaxWidth()
+                            .aspectRatio(1.5f)
+                    )
+                }
             }
         }
     }
