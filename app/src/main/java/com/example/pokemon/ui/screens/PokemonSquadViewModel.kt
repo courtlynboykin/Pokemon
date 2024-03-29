@@ -13,6 +13,11 @@ class PokemonSquadViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(PokemonSquadUiState())
     val uiState: StateFlow<PokemonSquadUiState> = _uiState.asStateFlow()
 
+
+//    private val _selectedPokemon = MutableStateFlow<Pokemon?>(null)
+//    val selectedPokemon: StateFlow<Pokemon?> = _selectedPokemon.asStateFlow()
+
+
     fun addPokemon(pokemon: Pokemon?) {
         val updatedSquad = _uiState.value.pokemonSquad.toMutableList()
         if (pokemon != null) {
@@ -28,9 +33,6 @@ class PokemonSquadViewModel : ViewModel() {
     }
 
     fun updatePokemonSelection(selectedPokemon: Pokemon) {
-        Log.d("HomePane", "Updating selection to: $selectedPokemon")
-        _uiState.update { currentState ->
-            currentState.copy(pokemon = selectedPokemon)
+       _uiState.value = _uiState.value.copy(pokemon = selectedPokemon)
         }
     }
-}

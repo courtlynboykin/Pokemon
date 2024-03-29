@@ -1,6 +1,5 @@
 package com.example.pokemon.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -10,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,15 +30,14 @@ import com.example.pokemon.ui.PokemonSquadUiState
 fun SquadList(
     onClick: (Pokemon) -> Unit,
     modifier: Modifier = Modifier,
-    pokemon: Pokemon,
-    squadList: List<Pokemon>
+    viewModel: PokemonSquadViewModel = viewModel()
 ) {
-//    val uiState by squadViewModel.uiState.collectAsState()
+    val squadUiState by viewModel.uiState.collectAsState()
     Column {
         Text(text = "My Squad")
         LazyRow {
-            items(squadList.size) {
-                PokemonCard(pokemon = pokemon, onClick = onClick)
+            items(squadUiState.pokemonSquad.take(6).size) {
+                PokemonCard(pokemon = squadUiState.pokemonSquad[it], onClick = onClick)
             }
         }
     }
@@ -53,25 +52,19 @@ fun HomePane(
 
     val squadUiState by viewModel.uiState.collectAsState()
     Column() {
-        squadUiState.pokemon?.let { it ->
+        squadUiState.pokemon?.let {
             SquadList(
-                pokemon = it,
-                squadList = squadUiState.pokemonSquad,
                 onClick = {
                     viewModel.updatePokemonSelection(it)
-                viewModel.removePokemon(it)}
+                    viewModel.removePokemon(it)
+                }
             )
         }
         DetailScreen(
             listUiState = pokemonViewModel.pokemonUiState,
-            squadUiState = squadUiState,
             onListClick = {
                 viewModel.updatePokemonSelection(it)
                 viewModel.addPokemon(it)
-            },
-            onSquadClick = {
-                viewModel.updatePokemonSelection(it)
-                viewModel.removePokemon(it)
             }
         )
     }
@@ -92,9 +85,7 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
 fun DetailScreen(
     modifier: Modifier = Modifier,
     listUiState: PokemonListUiState,
-    squadUiState: PokemonSquadUiState,
-    onListClick: (Pokemon) -> Unit,
-    onSquadClick: (Pokemon) -> Unit
+    onListClick: (Pokemon) -> Unit
 ) {
     when (listUiState) {
         is PokemonListUiState.Loading -> {
@@ -106,15 +97,12 @@ fun DetailScreen(
         }
 
         is PokemonListUiState.Success -> {
-
             PhotosGridScreen(
                 pokemonList = listUiState.pokemon,
                 onClick = onListClick,
             )
         }
-
-        }
-
+    }
 }
 
 @Composable
@@ -151,7 +139,7 @@ fun PokemonCard(
     onClick: (Pokemon) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = Modifier.clickable { onClick(pokemon) }) {
+    Card(modifier = Modifier) {
         Column {
             Text(pokemon.name)
             AsyncImage(
@@ -161,9 +149,9 @@ fun PokemonCard(
                     .build(),
                 contentDescription = null
             )
-//            Button(onClick = onClick) {
-//                Text(text = "Select")
-//            }
+            Button(onClick = { onClick(pokemon) }) {
+                Text(text = "Select")
+            }
         }
     }
 }
