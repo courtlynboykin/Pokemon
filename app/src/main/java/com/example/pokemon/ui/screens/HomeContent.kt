@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +27,10 @@ import com.example.pokemon.ui.PokemonUiState
 
 
 @Composable
-fun HomePane() {
+fun HomePane(onClick: (Pokemon) -> Unit) {
     val pokemonViewModel: PokemonViewModel =
         viewModel(factory = PokemonViewModel.Factory)
-    DetailScreen(uiState = pokemonViewModel.pokemonUiState) {
+    DetailScreen(uiState = pokemonViewModel.pokemonUiState, onClick = onClick) {
     }
 }
 
@@ -48,6 +49,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 fun DetailScreen(
     modifier: Modifier = Modifier,
     uiState: PokemonUiState,
+    onClick: (Pokemon) -> Unit,
     retryAction: () -> Unit,
 ) {
     when (uiState) {
@@ -64,6 +66,7 @@ fun DetailScreen(
         is PokemonUiState.Success -> {
             PhotosGridScreen(
                 pokemonList = uiState.pokemon,
+                onClick = onClick,
             )
         }
     }
@@ -72,6 +75,7 @@ fun DetailScreen(
 @Composable
 fun PhotosGridScreen(
     pokemonList: List<Pokemon>,
+    onClick: (Pokemon) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -84,6 +88,7 @@ fun PhotosGridScreen(
         items(items = pokemonList) { pokemon ->
             PokemonCard(
                 pokemon = pokemon,
+                onClick = onClick,
                 modifier = modifier
                     .padding(4.dp)
                     .fillMaxWidth()
@@ -96,6 +101,7 @@ fun PhotosGridScreen(
 @Composable
 fun PokemonCard(
     pokemon: Pokemon,
+    onClick: (Pokemon) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(modifier = Modifier) {
@@ -108,6 +114,9 @@ fun PokemonCard(
                     .build(),
                 contentDescription = null
             )
+            Button(onClick = onClick) {
+                Text(text = "Select")
+            }
         }
     }
 }
