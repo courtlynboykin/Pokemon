@@ -5,12 +5,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -27,9 +29,9 @@ import com.example.pokemon.ui.PokemonListUiState
 
 @Composable
 fun HomePane() {
-    val pokemonViewModel: PokemonListViewModel =
+    val pokemonListViewModel: PokemonListViewModel =
         viewModel(factory = PokemonListViewModel.Factory)
-    DetailScreen(uiState = pokemonViewModel.pokemonUiState) {
+    DetailPane(uiState = pokemonListViewModel.pokemonUiState) {
     }
 }
 
@@ -43,9 +45,24 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
     Text(text = "error")
 }
 
+@Composable
+fun SquadList(
+    modifier: Modifier = Modifier,
+    squadViewModel: PokemonSquadViewModel
+) {
+    val uiState by squadViewModel.uiState.collectAsState()
+    Column {
+        Text(text = "My Squad")
+        LazyRow {
+            items(uiState.pokemonSquad.size) {
+                PokemonCard(pokemon = uiState.pokemonSquad[it])
+            }
+        }
+    }
+}
 
 @Composable
-fun DetailScreen(
+fun DetailPane(
     modifier: Modifier = Modifier,
     uiState: PokemonListUiState,
     retryAction: () -> Unit,
@@ -62,7 +79,8 @@ fun DetailScreen(
         }
 
         is PokemonListUiState.Success -> {
-            PhotosGridScreen(
+            SquadList()
+            PokemonList(
                 pokemonList = uiState.pokemon,
             )
         }
@@ -70,25 +88,27 @@ fun DetailScreen(
 }
 
 @Composable
-fun PhotosGridScreen(
+fun PokemonList(
     pokemonList: List<Pokemon>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    var index by remember { mutableIntStateOf(0) }
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = modifier.padding(horizontal = 4.dp),
-        contentPadding = contentPadding,
-    ) {
-        items(items = pokemonList) { pokemon ->
-            PokemonCard(
-                pokemon = pokemon,
-                modifier = modifier
-                    .padding(4.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(1.5f)
-            )
+    Column {
+        Text(text = "Pokemon!")
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            modifier = modifier.padding(horizontal = 4.dp),
+            contentPadding = contentPadding,
+        ) {
+            items(items = pokemonList) { pokemon ->
+                PokemonCard(
+                    pokemon = pokemon,
+                    modifier = modifier
+                        .padding(4.dp)
+                        .fillMaxWidth()
+                        .aspectRatio(1.5f)
+                )
+            }
         }
     }
 }

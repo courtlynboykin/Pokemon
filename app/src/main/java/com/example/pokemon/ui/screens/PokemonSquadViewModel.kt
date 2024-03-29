@@ -16,4 +16,6 @@ class PokemonSquadViewModel : ViewModel() {
         updatedSquad.add(pokemon)
         _uiState.value = _uiState.value.copy(pokemonSquad = updatedSquad)
 }
+
+//
     }
