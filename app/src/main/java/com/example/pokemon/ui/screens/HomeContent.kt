@@ -1,21 +1,20 @@
 package com.example.pokemon.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -24,13 +23,57 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.pokemon.model.Pokemon
 import com.example.pokemon.ui.PokemonListUiState
+import com.example.pokemon.ui.PokemonSquadUiState
 
 
 @Composable
-fun HomePane() {
+fun SquadList(
+    onClick: (Pokemon) -> Unit,
+    modifier: Modifier = Modifier,
+    pokemon: Pokemon,
+    squadList: List<Pokemon>
+) {
+//    val uiState by squadViewModel.uiState.collectAsState()
+    Column {
+        Text(text = "My Squad")
+        LazyRow {
+            items(squadList.size) {
+                PokemonCard(pokemon = pokemon, onClick = onClick)
+            }
+        }
+    }
+}
+
+@Composable
+fun HomePane(
+    viewModel: PokemonSquadViewModel = viewModel(),
+) {
     val pokemonViewModel: PokemonListViewModel =
         viewModel(factory = PokemonListViewModel.Factory)
-    DetailScreen(uiState = pokemonViewModel.pokemonUiState, onClick: (Pokemon) -> Unit) {
+
+    val squadUiState by viewModel.uiState.collectAsState()
+    Column() {
+        squadUiState.pokemon?.let { it ->
+            SquadList(
+                pokemon = it,
+                squadList = squadUiState.pokemonSquad,
+                onClick = {
+                    viewModel.updatePokemonSelection(it)
+                viewModel.removePokemon(it)}
+            )
+        }
+        DetailScreen(
+            listUiState = pokemonViewModel.pokemonUiState,
+            squadUiState = squadUiState,
+            onListClick = {
+                viewModel.updatePokemonSelection(it)
+                viewModel.addPokemon(it)
+            },
+            onSquadClick = {
+                viewModel.updatePokemonSelection(it)
+                viewModel.removePokemon(it)
+            }
+        )
     }
 }
 
@@ -40,7 +83,7 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreen(modifier: Modifier = Modifier) {
     Text(text = "error")
 }
 
@@ -48,28 +91,30 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun DetailScreen(
     modifier: Modifier = Modifier,
-    uiState: PokemonListUiState, 
-    onClick: (Pokemon) -> Unit,
-    retryAction: () -> Unit,
+    listUiState: PokemonListUiState,
+    squadUiState: PokemonSquadUiState,
+    onListClick: (Pokemon) -> Unit,
+    onSquadClick: (Pokemon) -> Unit
 ) {
-    when (uiState) {
+    when (listUiState) {
         is PokemonListUiState.Loading -> {
             LoadingScreen()
         }
 
         is PokemonListUiState.Error -> {
-            ErrorScreen(
-                retryAction = retryAction
-            )
+            ErrorScreen()
         }
 
         is PokemonListUiState.Success -> {
+
             PhotosGridScreen(
-                pokemonList = uiState.pokemon,
-                onClick = onClick,
+                pokemonList = listUiState.pokemon,
+                onClick = onListClick,
             )
         }
-    }
+
+        }
+
 }
 
 @Composable
@@ -79,21 +124,23 @@ fun PhotosGridScreen(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    var index by remember { mutableIntStateOf(0) }
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = modifier.padding(horizontal = 4.dp),
-        contentPadding = contentPadding,
-    ) {
-        items(items = pokemonList) { pokemon ->
-            PokemonCard(
-                pokemon = pokemon,
-                onClick = onClick,
-                modifier = modifier
-                    .padding(4.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(1.5f)
-            )
+    Column {
+        Text(text = "Pokemon!")
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            modifier = modifier.padding(horizontal = 4.dp),
+            contentPadding = contentPadding,
+        ) {
+            items(items = pokemonList) { pokemon ->
+                PokemonCard(
+                    pokemon = pokemon,
+                    onClick = onClick,
+                    modifier = modifier
+                        .padding(4.dp)
+                        .fillMaxWidth()
+                        .aspectRatio(1.5f)
+                )
+            }
         }
     }
 }
@@ -104,7 +151,7 @@ fun PokemonCard(
     onClick: (Pokemon) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = Modifier) {
+    Card(modifier = Modifier.clickable { onClick(pokemon) }) {
         Column {
             Text(pokemon.name)
             AsyncImage(
@@ -114,9 +161,9 @@ fun PokemonCard(
                     .build(),
                 contentDescription = null
             )
-            Button(onClick = onClick) {
-                Text(text = "Select")
-            }
+//            Button(onClick = onClick) {
+//                Text(text = "Select")
+//            }
         }
     }
 }
