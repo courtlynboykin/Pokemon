@@ -48,14 +48,15 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun SquadList(
     modifier: Modifier = Modifier,
-    squadViewModel: PokemonSquadViewModel
+    pokemon: Pokemon,
+    squadList: List<Pokemon>
 ) {
-    val uiState by squadViewModel.uiState.collectAsState()
+//    val uiState by squadViewModel.uiState.collectAsState()
     Column {
         Text(text = "My Squad")
         LazyRow {
-            items(uiState.pokemonSquad.size) {
-                PokemonCard(pokemon = uiState.pokemonSquad[it])
+            items(squadList.size) {
+                PokemonCard(pokemon = pokemon)
             }
         }
     }
@@ -79,7 +80,7 @@ fun DetailPane(
         }
 
         is PokemonListUiState.Success -> {
-            SquadList()
+            SquadList(pokemon = uiState.pokemon, squadList = uiState.squad)
             PokemonList(
                 pokemonList = uiState.pokemon,
             )
