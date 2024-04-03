@@ -1,13 +1,11 @@
-package com.example.pokemon.ui.screens
+package com.example.pokemon.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.pokemon.model.Pokemon
 import com.example.pokemon.ui.PokemonSquadUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 class PokemonSquadViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(PokemonSquadUiState())

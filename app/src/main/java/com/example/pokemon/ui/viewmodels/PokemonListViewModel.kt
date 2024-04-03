@@ -1,4 +1,4 @@
-package com.example.pokemon.ui.screens
+package com.example.pokemon.ui.viewmodels
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +12,6 @@ import com.example.pokemon.data.PokemonRepository
 import com.example.pokemon.model.Pokemon
 import com.example.pokemon.ui.PokemonApplication
 import com.example.pokemon.ui.PokemonListUiState
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -23,10 +22,11 @@ class PokemonListViewModel(private val pokemonRepository: PokemonRepository) : V
     var pokemonUiState: PokemonListUiState by mutableStateOf(PokemonListUiState.Loading)
         private set
 
-
+    private var _allPokemon: List<Pokemon> = emptyList()
 
     init {
         getPokemon()
+        setAllPokemon()
     }
 
     fun getPokemon(limit: Int = 151) {
@@ -45,12 +45,23 @@ class PokemonListViewModel(private val pokemonRepository: PokemonRepository) : V
             } catch (e: HttpException) {
                 PokemonListUiState.Error
             }
-
         }
     }
 
-    fun updatePokemonList(pokemon: Pokemon) {
-//        val originalPokemonList = pokem
+    fun setAllPokemon() {
+        viewModelScope.launch {
+            val pokemon = pokemonRepository.getPokemon(151)
+            if (pokemon != null) {
+                _allPokemon = pokemon
+            }
+        }
+    }
+
+    fun searchPokemonByName(name: String) {
+        viewModelScope.launch {
+            val filteredPokemon = _allPokemon.filter { it.name.contains(name, ignoreCase = true) }
+            pokemonUiState = PokemonListUiState.Success(filteredPokemon)
+        }
     }
 
     companion object {
