@@ -24,8 +24,4 @@ class PokemonSquadViewModel : ViewModel() {
         updatedSquad.remove(pokemon)
         _uiState.value = _uiState.value.copy(pokemonSquad = updatedSquad)
     }
-
-    fun updatePokemonSelection(selectedPokemon: Pokemon) {
-        _uiState.value = _uiState.value.copy(pokemon = selectedPokemon)
-    }
 }
