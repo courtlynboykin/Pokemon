@@ -82,7 +82,6 @@ fun HomePane(
             }
             SquadList(
                 onClick = {
-                    viewModel.updatePokemonSelection(it)
                     viewModel.removePokemon(it)
                 }
             )
@@ -104,7 +103,6 @@ fun HomePane(
                 listUiState = pokemonViewModel.pokemonUiState,
                 squadUiState = squadUiState,
                 onListClick = {
-                    viewModel.updatePokemonSelection(it)
                     viewModel.addPokemon(it)
                 }
             )
